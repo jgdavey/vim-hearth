@@ -11,24 +11,40 @@ endif
 let g:loaded_hearth = 1
 
 " Test runners {{{1
-function! s:runner()
+function! s:repl_runner()
   " If unset, determine the correct test runner
-  if !exists("g:hearth_runner")
-    let g:hearth_runner = s:default_runner()
+  if !exists("g:hearth_repl_runner")
+    let g:hearth_repl_runner = s:default_repl_runner()
   endif
 
-  let fn = 's:run_command_with_'.g:hearth_runner
+  let fn = 's:run_command_with_'.g:hearth_repl_runner
   if exists("*".fn)
     return fn
   else
-    echo "No such runner: ". g:hearth_runner." . Setting runner to 'vim'."
-    let g:hearth_runner = 'vim'
+    echo "No such runner: ". g:hearth_repl_runner." . Setting runner to 'vim'."
+    let g:hearth_repl_runner = 'vim'
+    return ''
+  endif
+endfunction
+
+function! s:command_runner()
+  " If unset, determine the correct test runner
+  if !exists("g:hearth_command_runner")
+    let g:hearth_command_runner = s:default_command_runner()
+  endif
+
+  let fn = 's:run_command_with_'.g:hearth_command_runner
+  if exists("*".fn)
+    return fn
+  else
+    echo "No such runner: ". g:hearth_command_runner." . Setting runner to 'vim'."
+    let g:hearth_command_runner = 'vim'
     return ''
   endif
 endfunction
 
 function! s:run_command_with_dispatch(command)
-  :execute ":Dispatch " a:command
+  :execute ":Dispatch" a:command
 endfunction
 
 function! s:run_command_with_vimux(command)
@@ -46,24 +62,34 @@ function! s:run_command_with_vim(command)
 endfunction
 
 function! s:run_command_with_fireplace(command)
-  call fireplace#echo_session_eval(a:command)
+  exec ':Eval "'.a:command.'"'
 endfunction
 
 function! s:run_command_with_echo(command)
   echo 'Command: `'.a:command.'`'
 endfunction
 
-function! s:run_command(command)
-  return call(s:runner(), [a:command])
+function! s:run_command(runner, command)
+  return call(a:runner, [a:command])
 endfunction
 
-function! s:default_runner()
+function! s:default_repl_runner()
   if exists("*VimuxRunCommand")
     return 'vimux'
   elseif exists("*Send_to_Tmux")
     return 'tslime'
   else
     return 'fireplace'
+  endif
+endfunction
+
+function! s:default_command_runner()
+  if exists("$TMUX") && exists("*VimuxRunCommand")
+    return 'vimux'
+  elseif exists("$TMUX") && exists("*Send_to_Tmux")
+    return 'tslime'
+  else
+    return 'vim'
   endif
 endfunction
 " }}}1
@@ -91,9 +117,9 @@ function! s:run_clojure_test()
     write
     try
       silent Require
-      return s:run_command("(clojure.test/run-tests '" . test.ns . ")")
-    catch /^.*Clojure:/
-      return s:run_command_with_vim("clj " . test.file)
+      return s:run_command(s:repl_runner(), "(clojure.test/run-tests '" . test.ns . ")")
+    catch /^.*\(Clojure\|nREPL Connection Error\):/
+      return s:run_command(s:command_runner(), "clj " . test.file)
     endtry
   else
     echo "No clojure test file found"
@@ -101,8 +127,8 @@ function! s:run_clojure_test()
 endfunction
 " }}}1
 
-map <Plug>RunClojureTest :<C-U>call <SID>run_clojure_test()<CR>
+nnoremap <Plug>RunClojureTest :<C-U>call <SID>run_clojure_test()<CR>
 
 augroup hearth_map
-  autocmd FileType clojure nmap <buffer> <leader>t <Plug>RunClojureTest
+  autocmd FileType clojure map <buffer> <leader>t <Plug>RunClojureTest
 augroup END
