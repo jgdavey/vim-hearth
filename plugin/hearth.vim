@@ -111,15 +111,34 @@ function! s:clojure_test_file()
   return {}
 endfunction
 
+function! s:require(ns)
+  let cmd = ("(clojure.core/require '". a:ns .' :reload-all)')
+  silent call fireplace#session_eval(cmd)
+endfunction
+
+function! s:run_clojure_test_command(test)
+  if exists("b:leiningen_root")
+    let comm="lein test :only ".a:test.ns
+  else
+    let comm="clj " . a:test.file
+  endif
+  return s:run_command(s:command_runner(), comm)
+endfunction
+
 function! s:run_clojure_test()
   let test = s:clojure_test_file()
   if !empty(test)
     write
+    let portfile = b:leiningen_root . '/target/repl-port'
     try
-      silent Require
-      return s:run_command(s:repl_runner(), "(clojure.test/run-tests '" . test.ns . ")")
-    catch /^.*\(Clojure\|nREPL Connection Error\):/
-      return s:run_command(s:command_runner(), "clj " . test.file)
+      if filereadable(portfile)
+        call s:require(test.ns)
+        return s:run_command(s:repl_runner(), "(clojure.test/run-tests '" . test.ns . ")")
+      else
+        return s:run_clojure_test_command(test)
+      endif
+    catch
+      echo v:errmsg . v:exception
     endtry
   else
     echo "No clojure test file found"
