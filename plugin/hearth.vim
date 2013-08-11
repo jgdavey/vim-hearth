@@ -93,7 +93,6 @@ function! s:default_command_runner()
   endif
 endfunction
 " }}}1
-
 " Test command building {{{1
 function! s:clojure_test_file()
   let ns = fireplace#ns()
@@ -145,9 +144,12 @@ function! s:run_clojure_test()
   endif
 endfunction
 " }}}1
-
+" Mappings {{{1
 nnoremap <Plug>RunClojureTest :<C-U>call <SID>run_clojure_test()<CR>
 
+if !exists("g:no_hearth_mappings")
 augroup hearth_map
   autocmd FileType clojure map <buffer> <leader>t <Plug>RunClojureTest
 augroup END
+endif
+"}}}1
