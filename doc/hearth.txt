@@ -1,0 +1,75 @@
+*hearth.txt*  Turbo Clojure testing for fireplace.vim
+
+Author:  Joshua Davey <http://joshuadavey.com/>
+License: Same terms as Vim itself (see |license|)
+
+This plugin is only available if 'compatible' is not set.
+
+This plugin can optionally be used with tmux panes, via tslime.vim or vimux,
+whichever is available, or within vim itself.
+
+It depends on fireplace.vim.
+
+INTRODUCTION                                    *hearth*
+
+Hearth is designed to speed up your Clojure TDD (clojure.test) cycle
+by using a single key mapping to run the most relevant test file based
+on the current file in vim. It depends on |fireplace| to determine
+current namespace and relevant test namespace.
+
+The default mapping for invoking the plugin is <leader>t. The behavior
+after this depends on if you have a leinigen REPL (nREPL) running or
+not.
+
+With a REPL running, running <leader>t will reload the relevant test
+namespace and send something like the following to the REPL:
+>
+        (clojure.test run-tests 'your.test-namespace :reload-all)
+<
+If no repl is running, it will just run the following command via
+whichever runner you have chosen:
+>
+        clj path/to/file.clj
+<
+To choose a runner, see |hearth-runners|.
+
+Note: If you're using this with a separate tmux pane, this plugin does
+not work well with |autochdir|. The working directories for the target
+pane and vim should match.
+
+
+RUNNERS                                          *hearth-runners*
+
+Below are the available runners. If an option is set, the plugin
+automatically chooses one based on the first available from the valid
+list.
+>
+          g:hearth_repl_runner      {vimux, tslime, fireplace}
+          g:hearth_command_runner   {vimux, tslime, vim}
+
+To explicitly set a runner, put something like the following into your
+vimrc:
+>
+          let g:hearth_repl_runner='fireplace'
+          let g:hearth_command_runner='vim'
+<
+
+MAPPING                                          *hearth-mappings*
+
+The following map is always available:
+
+<Plug>RunClojureTest              Run clojure test
+
+And the following is available within clojure files, unless
+"g:no_hearth_mappings" is set:
+
+<leader>t                         Run clojure test
+
+To use custom mappings, you can put something like the following in your
+vimrc:
+>
+          let g:no_hearth_mappings = 1
+          map <leader>rt <Plug>RunClojureTest
+<
+
+ vim:tw=78:et:ft=help:norl:
