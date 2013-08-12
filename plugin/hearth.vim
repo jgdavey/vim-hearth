@@ -124,13 +124,27 @@ function! s:run_clojure_test_command(test)
   return s:run_command(s:command_runner(), comm)
 endfunction
 
+function! s:portfile()
+  let path='target/repl-port'
+  if exists('b:leiningen_root')
+    let file=b:leiningen_root . '/' . path
+  else
+    let file=fnamemodify(path, ':p')
+  endif
+
+  if filereadable(file)
+    return file
+  else
+    return ''
+  endif
+endfunction
+
 function! s:run_clojure_test()
   let test = s:clojure_test_file()
   if !empty(test)
     write
-    let portfile = b:leiningen_root . '/target/repl-port'
     try
-      if filereadable(portfile)
+      if !empty(s:portfile())
         call s:require(test.ns)
         return s:run_command(s:repl_runner(), "(clojure.test/run-tests '" . test.ns . ")")
       else
