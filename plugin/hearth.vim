@@ -139,16 +139,18 @@ endfunction
 
 function! s:portfile()
   if exists('b:leiningen_root')
-    let file= b:leiningen_root . '/target/repl-port'
+    let folder = b:leiningen_root
   else
-    let file= $HOME . "/.lein/repl-port"
+    let folder = expand("%:p:h")
   endif
+  let possiblities = [folder.'/target/repl-port', folder.'/target/repl/repl-port' , $HOME."/.lein/repl-port"]
 
-  if filereadable(file) "project client
-    return file
-  else
-    return ''
-  endif
+  for file in possiblities
+    if filereadable(file)
+      return file
+    endif
+  endfor
+  return ''
 endfunction
 
 function! s:port()
