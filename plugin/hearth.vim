@@ -10,7 +10,34 @@ if (exists("g:loaded_hearth") && g:loaded_hearth) || &cp
 endif
 let g:loaded_hearth = 1
 
-" Test runners {{{1
+" Adapters {{{1
+function! s:run_command_with_dispatch(command)
+  execute "Dispatch " . a:command
+endfunction
+
+function! s:run_command_with_vimux(command)
+  return VimuxRunCommand(a:command)
+endfunction
+
+function! s:run_command_with_tslime(command)
+  let executable = "".a:command
+  return Send_to_Tmux(executable."\n")
+endfunction
+
+function! s:run_command_with_vim(command)
+  exec ':silent !echo;echo;echo;echo;echo;echo;echo;echo'
+  exec ':!'.a:command
+endfunction
+
+function! s:run_command_with_fireplace(command)
+  exec 'Eval '.a:command
+endfunction
+
+function! s:run_command_with_echo(command)
+  echo 'Command: `'.a:command.'`'
+endfunction
+" }}}1
+" Test running {{{1
 function! s:repl_runner()
   " If unset, determine the correct test runner
   if !exists("g:hearth_repl_runner")
@@ -41,32 +68,6 @@ function! s:command_runner()
     let g:hearth_command_runner = 'vim'
     return ''
   endif
-endfunction
-
-function! s:run_command_with_dispatch(command)
-  :execute ":Dispatch" a:command
-endfunction
-
-function! s:run_command_with_vimux(command)
-  return VimuxRunCommand(a:command)
-endfunction
-
-function! s:run_command_with_tslime(command)
-  let executable = "".a:command
-  return Send_to_Tmux(executable."\n")
-endfunction
-
-function! s:run_command_with_vim(command)
-  exec ':silent !echo;echo;echo;echo;echo;echo;echo;echo'
-  exec ':!'.a:command
-endfunction
-
-function! s:run_command_with_fireplace(command)
-  exec 'Eval '.a:command
-endfunction
-
-function! s:run_command_with_echo(command)
-  echo 'Command: `'.a:command.'`'
 endfunction
 
 function! s:run_command(runner, command)
