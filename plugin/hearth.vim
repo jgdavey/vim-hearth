@@ -124,6 +124,28 @@ function! s:run_clojure_test_command(test)
   return s:run_command(s:command_runner(), comm)
 endfunction
 
+function! s:connect_standalone_client()
+  let userpath= $HOME . "/.lein/repl-port"
+  if !filereadable(userpath)
+    return ''
+  endif
+
+  if has_key(fireplace#client(), 'connection')
+    return fireplace#client().connection.port
+  endif
+
+  let port = readfile(userpath)[0]
+  try
+    let connection='nrepl://localhost:'.port
+    let folder=expand("%:p:h")
+    exec 'Connect '.connection . ' ' .folder
+    return userpath
+  catch
+    echo v:errmsg
+    return ''
+  endtry
+endfunction
+
 function! s:portfile()
   let path='target/repl-port'
   if exists('b:leiningen_root')
@@ -132,10 +154,10 @@ function! s:portfile()
     let file=fnamemodify(path, ':p')
   endif
 
-  if filereadable(file)
+  if filereadable(file) "project client
     return file
   else
-    return ''
+    return s:connect_standalone_client()
   endif
 endfunction
 
