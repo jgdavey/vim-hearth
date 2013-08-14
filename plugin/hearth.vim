@@ -130,11 +130,15 @@ function! s:connect_standalone_client()
     return ''
   endif
 
+  let port = readfile(userpath)[0]
+
   if has_key(fireplace#client(), 'connection')
-    return fireplace#client().connection.port
+    let fport = fireplace#client().connection.port
+    if fport == port
+      return port
+    endif
   endif
 
-  let port = readfile(userpath)[0]
   try
     let connection='nrepl://localhost:'.port
     let folder=expand("%:p:h")
