@@ -24,7 +24,7 @@ not.
 With a REPL running, running <leader>t will reload the relevant test
 namespace and send something like the following to the REPL:
 >
-        (clojure.test run-tests 'your.test-namespace :reload-all)
+        (clojure.test/run-tests 'your.test-namespace :reload-all)
 <
 If no repl is running, it will just run the following command via
 whichever runner you have chosen:
