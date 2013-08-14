@@ -62,7 +62,7 @@ function! s:run_command_with_vim(command)
 endfunction
 
 function! s:run_command_with_fireplace(command)
-  exec ':Eval "'.a:command.'"'
+  exec 'Eval '.a:command
 endfunction
 
 function! s:run_command_with_echo(command)
