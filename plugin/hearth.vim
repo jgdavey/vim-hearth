@@ -84,9 +84,9 @@ function! s:default_repl_runner()
 endfunction
 
 function! s:default_command_runner()
-  if exists("$TMUX") && exists("*VimuxRunCommand")
+  if exists("*VimuxRunCommand")
     return 'vimux'
-  elseif exists("$TMUX") && exists("*Send_to_Tmux")
+  elseif exists("*Send_to_Tmux")
     return 'tslime'
   else
     return 'vim'
