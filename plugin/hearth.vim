@@ -159,7 +159,11 @@ function! s:port()
     return ''
   endif
 
-  let port = readfile(portfile)[0]
+  if getfsize(portfile) > 0
+    let port = matchstr(readfile(portfile, 'b', 1)[0], '\d\+')
+  else
+    return ''
+  endif
 
   if has_key(fireplace#client(), 'connection')
     let fport = fireplace#client().connection.port
