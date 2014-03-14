@@ -125,64 +125,16 @@ function! s:run_clojure_test_command(test)
   return s:run_command(s:command_runner(), comm)
 endfunction
 
-function! s:connect_standalone_client(port)
-  try
-    let connection='nrepl://localhost:'.a:port
-    let folder=expand("%:p:h")
-    exec 'Connect '.connection . ' ' .folder
-    return a:port
-  catch
-    echo v:errmsg
-    return ''
-  endtry
-endfunction
-
-function! s:portfile()
-  if exists('b:leiningen_root')
-    let folder = b:leiningen_root
-  else
-    let folder = expand("%:p:h")
-  endif
-  let possiblities = [folder.'/target/repl-port', folder.'/target/repl/repl-port' , $HOME."/.lein/repl-port"]
-
-  for file in possiblities
-    if filereadable(file)
-      return file
-    endif
-  endfor
-  return ''
-endfunction
-
-function! s:port()
-  let portfile = s:portfile()
-  if empty(portfile)
-    return ''
-  endif
-
-  if getfsize(portfile) > 0
-    let port = matchstr(readfile(portfile, 'b', 1)[0], '\d\+')
-  else
-    return ''
-  endif
-
-  if has_key(fireplace#client(), 'connection')
-    let fport = fireplace#client().connection.port
-    if fport == port
-      return port
-    endif
-  elseif exists('b:leiningen_root')
-    return port
-  else
-    return s:connect_standalone_client(port)
-  endif
+function! s:has_connection()
+  return has_key(fireplace#client(), 'connection')
 endfunction
 
 function! s:run_clojure_test()
   let test = s:clojure_test_file()
   if !empty(test)
-    write
+    silent write
     try
-      if !empty(s:port())
+      if s:has_connection()
         call s:require(test.ns)
         return s:run_command(s:repl_runner(), "(clojure.test/run-tests '" . test.ns . ")")
       else
